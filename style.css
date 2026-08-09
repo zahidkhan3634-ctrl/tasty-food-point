@@ -1,0 +1,202 @@
+body{
+    margin:0;
+    padding:0;
+    font-family:Arial,sans-serif;
+    background:#111;
+    color:#fff;
+}
+
+.navbar{
+    padding:15px 0;
+}
+
+.hero{
+    background:linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.6)),
+    url("https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1400");
+    background-size:cover;
+    background-position:center;
+    padding:120px 20px;
+    text-align:center;
+}
+
+.hero h1{
+    font-size:50px;
+    color:#FFD700;
+    font-weight:bold;
+}
+
+.hero p{
+    font-size:22px;
+}
+
+.card{
+    border:none;
+    border-radius:15px;
+    overflow:hidden;
+    background:#222;
+    color:#fff;
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-8px);
+}
+
+.card img{
+    height:220px;
+    object-fit:cover;
+}
+
+.card-body{
+    padding:20px;
+}
+
+.btn-warning{
+    font-weight:bold;
+}
+
+h2{
+    color:#FFD700;
+}
+
+footer{
+    background:#000;
+    padding:20px;
+    text-align:center;
+    color:#aaa;
+}
+.whatsapp-float{
+position:fixed;
+bottom:20px;
+right:20px;
+width:60px;
+height:60px;
+background:#25D366;
+color:white;
+border-radius:50%;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:32px;
+text-decoration:none;
+box-shadow:0 5px 10px rgba(0,0,0,.3);
+z-index:999;
+}
+
+.whatsapp-float:hover{
+transform:scale(1.1);
+}
+.call-float{
+position:fixed;
+bottom:90px;
+right:20px;
+width:60px;
+height:60px;
+background:#ff9800;
+color:white;
+border-radius:50%;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:30px;
+text-decoration:none;
+box-shadow:0 5px 10px rgba(0,0,0,.3);
+z-index:999;
+transition:.3s;
+}
+
+.call-float:hover{
+transform:scale(1.1);
+}
+
+/* Quantity stepper (replaces Add To Cart button after click) */
+.item-action{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+}
+
+.item-action .stepper-btn{
+    background:#FFD700;
+    color:#111;
+    border:none;
+    width:40px;
+    height:40px;
+    border-radius:8px;
+    font-size:20px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.item-action .stepper-btn:hover{
+    background:#e6c200;
+}
+
+.item-action .stepper-qty{
+    font-size:20px;
+    font-weight:bold;
+    min-width:24px;
+    text-align:center;
+}
+
+/* Cart list rows */
+.cart-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid #333;
+}
+
+.cart-row p{
+    margin:0;
+}
+
+.qty-controls{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.qty-controls button{
+    width:30px;
+    height:30px;
+    border:none;
+    border-radius:6px;
+    background:#FFD700;
+    color:#111;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.qty-controls button:hover{
+    background:#e6c200;
+}
+
+.qty-controls span{
+    min-width:20px;
+    text-align:center;
+    font-weight:bold;
+}
+
+/* Out of stock look */
+.out-of-stock-card{
+    opacity:0.55;
+}
+.out-of-stock-card img{
+    filter:grayscale(70%);
+}
+
+/* Admin stock switch (readable on dark bg) */
+.form-check-input{
+    width:2.5em;
+    height:1.3em;
+}
+.form-check-label{
+    margin-left:6px;
+    vertical-align:middle;
+}
