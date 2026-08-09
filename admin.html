@@ -12,6 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="firebase-config.js"></script>
 </head>
 
@@ -46,7 +47,9 @@
     <div class="card p-4 bg-dark text-white mb-5">
         <input type="text" id="newName" class="form-control mb-3" placeholder="Item Name (e.g. Zinger Burger)">
         <input type="number" id="newPrice" class="form-control mb-3" placeholder="Price (e.g. 250)">
-        <input type="text" id="newImage" class="form-control mb-3" placeholder="Image URL (https://...)">
+        <label class="text-white-50 mb-1" style="font-size:0.85rem;">Item Photo</label>
+        <input type="file" id="newImageFile" accept="image/*" class="form-control mb-2">
+        <p id="uploadStatus" class="text-warning" style="font-size:0.8rem;"></p>
         <button class="btn btn-success w-100" onclick="addItem()">➕ Add Item</button>
     </div>
 

@@ -95,22 +95,36 @@ function loadItems(){
 function addItem(){
     let name = document.getElementById("newName").value.trim();
     let price = parseFloat(document.getElementById("newPrice").value);
-    let image = document.getElementById("newImage").value.trim();
+    let fileInput = document.getElementById("newImageFile");
+    let file = fileInput.files[0];
+    let statusEl = document.getElementById("uploadStatus");
 
-    if(!name || !price || !image){
-        alert("Please fill all fields.");
+    if(!name || !price || !file){
+        alert("Please fill all fields aur ek photo select karein.");
         return;
     }
 
-    db.collection("menuItems").add({
-        name: name,
-        price: price,
-        image: image,
-        inStock: true
+    statusEl.innerHTML = "⏳ Photo upload ho rahi hai...";
+
+    let storageRef = firebase.storage().ref("menu-images/" + Date.now() + "_" + file.name);
+
+    storageRef.put(file).then(function(snapshot){
+        return snapshot.ref.getDownloadURL();
+    }).then(function(downloadURL){
+        return db.collection("menuItems").add({
+            name: name,
+            price: price,
+            image: downloadURL,
+            inStock: true
+        });
     }).then(function(){
         document.getElementById("newName").value = "";
         document.getElementById("newPrice").value = "";
-        document.getElementById("newImage").value = "";
+        fileInput.value = "";
+        statusEl.innerHTML = "✅ Item add ho gaya!";
+        setTimeout(function(){ statusEl.innerHTML = ""; }, 3000);
+    }).catch(function(err){
+        statusEl.innerHTML = "❌ Error: " + err.message;
     });
 }
 
@@ -127,14 +141,37 @@ function editItem(id, currentName, currentPrice, currentImage){
     let newPrice = prompt("Price:", currentPrice);
     if(newPrice === null) return;
 
-    let newImage = prompt("Image URL:", currentImage);
-    if(newImage === null) return;
+    let changePhoto = confirm("Kya photo bhi change karni hai?\n(OK = Nayi photo select karein, Cancel = Purani photo rakhein)");
 
-    db.collection("menuItems").doc(id).update({
-        name: newName.trim(),
-        price: parseFloat(newPrice),
-        image: newImage.trim()
-    });
+    if(!changePhoto){
+        db.collection("menuItems").doc(id).update({
+            name: newName.trim(),
+            price: parseFloat(newPrice)
+        });
+        return;
+    }
+
+    let tempInput = document.createElement("input");
+    tempInput.type = "file";
+    tempInput.accept = "image/*";
+    tempInput.onchange = function(){
+        let file = tempInput.files[0];
+        if(!file) return;
+
+        let storageRef = firebase.storage().ref("menu-images/" + Date.now() + "_" + file.name);
+        storageRef.put(file).then(function(snapshot){
+            return snapshot.ref.getDownloadURL();
+        }).then(function(downloadURL){
+            db.collection("menuItems").doc(id).update({
+                name: newName.trim(),
+                price: parseFloat(newPrice),
+                image: downloadURL
+            });
+        }).catch(function(err){
+            alert("Photo upload error: " + err.message);
+        });
+    };
+    tempInput.click();
 }
 
 // ---------- DELETE ----------

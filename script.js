@@ -1,6 +1,41 @@
 let cart = [];
 let menuItemsCache = [];
 
+// ---------- PWA: SERVICE WORKER + INSTALL PROMPT ----------
+if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("sw.js").catch(function(err){
+        console.log("Service worker registration failed:", err);
+    });
+}
+
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", function(event){
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    let btn = document.getElementById("installBtn");
+    if(btn) btn.style.display = "inline-block";
+});
+
+document.addEventListener("DOMContentLoaded", function(){
+    let installBtn = document.getElementById("installBtn");
+    if(installBtn){
+        installBtn.addEventListener("click", function(){
+            if(!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            deferredInstallPrompt.userChoice.then(function(){
+                deferredInstallPrompt = null;
+                installBtn.style.display = "none";
+            });
+        });
+    }
+});
+
+window.addEventListener("appinstalled", function(){
+    let btn = document.getElementById("installBtn");
+    if(btn) btn.style.display = "none";
+});
+
 // ---------- LOAD MENU FROM FIREBASE ----------
 function loadMenu(){
     db.collection("menuItems").orderBy("name").get().then(function(snapshot){
