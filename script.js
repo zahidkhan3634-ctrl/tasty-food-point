@@ -1,6 +1,31 @@
 let cart = [];
 let menuItemsCache = [];
 
+// ---------- PAYMENT ACCOUNT DETAILS ----------
+const paymentAccounts = {
+    "JazzCash": { name: "Zahid Khan", number: "03116563925" },
+    "Easypaisa": { name: "Zahid Khan", number: "03483111205" }
+};
+
+function showPaymentDetails(){
+    let method = document.getElementById("paymentMethod").value;
+    let box = document.getElementById("paymentDetailsBox");
+
+    if(paymentAccounts[method]){
+        let acc = paymentAccounts[method];
+        box.innerHTML = `
+            💳 <strong>${method} Account</strong><br>
+            Name: ${acc.name}<br>
+            Number: ${acc.number}<br>
+            <small>Order place karne ke baad payment send karein aur screenshot WhatsApp par bhej dein.</small>
+        `;
+        box.style.display = "block";
+    } else {
+        box.style.display = "none";
+        box.innerHTML = "";
+    }
+}
+
 // ---------- PWA: SERVICE WORKER + INSTALL PROMPT ----------
 if("serviceWorker" in navigator){
     navigator.serviceWorker.register("sw.js").catch(function(err){
@@ -260,6 +285,12 @@ function placeOrder(){
     let grandTotal = total + deliveryCharge;
     let deliveryText = deliveryCharge === 0 ? "FREE 🎉" : "Rs.50";
 
+    let paymentLine = "💳 Payment: " + payment;
+    if(paymentAccounts[payment]){
+        let acc = paymentAccounts[payment];
+        paymentLine += `\n➡️ Send Rs.${grandTotal} to ${acc.name} (${acc.number}) via ${payment}\n📸 Payment karne ke baad screenshot yahin WhatsApp par bhej dein.`;
+    }
+
     let message =
 `🍔 Tasty Food Point
 
@@ -274,7 +305,7 @@ ${order}
 🚚 Delivery: ${deliveryText}
 💵 Grand Total: Rs.${grandTotal}
 
-💳 Payment: ${payment}`;
+${paymentLine}`;
 
     let url = "https://wa.me/923483111205?text=" + encodeURIComponent(message);
     window.location.href = url;
