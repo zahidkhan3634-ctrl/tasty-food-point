@@ -187,7 +187,20 @@ function renderCart(){
 
     let total = calculateTotal();
     document.getElementById("totalPrice").innerHTML = total;
-    document.getElementById("grandTotal").innerHTML = total === 0 ? 50 : total + 50;
+
+    let deliveryCharge = (total >= 800) ? 0 : 50;
+    let grandTotal = total === 0 ? 0 : total + deliveryCharge;
+    document.getElementById("grandTotal").innerHTML = grandTotal;
+
+    let noticeBox = document.getElementById("deliveryNotice");
+    if(noticeBox){
+        if(total >= 800){
+            noticeBox.innerHTML = "🎉 Free Delivery Unlocked!";
+        } else {
+            let remaining = 800 - total;
+            noticeBox.innerHTML = "🚚 Delivery: Rs.50 &nbsp;|&nbsp; Add Rs." + remaining + " more to get FREE delivery (orders above Rs.800)";
+        }
+    }
 }
 
 function placeOrder(){
@@ -208,7 +221,9 @@ function placeOrder(){
     });
 
     let total = calculateTotal();
-    let grandTotal = total + 50;
+    let deliveryCharge = (total >= 800) ? 0 : 50;
+    let grandTotal = total + deliveryCharge;
+    let deliveryText = deliveryCharge === 0 ? "FREE 🎉" : "Rs.50";
 
     let message =
 `🍔 Tasty Food Point
@@ -221,7 +236,7 @@ function placeOrder(){
 ${order}
 
 💰 Food Total: Rs.${total}
-🚚 Delivery: Rs.50
+🚚 Delivery: ${deliveryText}
 💵 Grand Total: Rs.${grandTotal}
 
 💳 Payment: ${payment}`;
