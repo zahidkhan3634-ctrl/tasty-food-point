@@ -107,7 +107,7 @@ function renderMenu(){
         html += `
             <div class="col-md-4 mb-4">
                 <div class="card${!inStock ? ' out-of-stock-card' : ''}">
-                    <img src="${item.image}" class="card-img-top">
+                    <img src="${item.image}" class="card-img-top" onerror="this.onerror=null;this.src='https://placehold.co/400x300/3a0d0d/FFC94A?text=Tasty+Food+Point';">
                     <div class="card-body text-center">
                         <h4>${item.name}</h4>
                         <p>Rs.${item.price}</p>
@@ -306,6 +306,24 @@ ${order}
 💵 Grand Total: Rs.${grandTotal}
 
 ${paymentLine}`;
+
+    // ---------- SAVE ORDER FOR SALES TRACKING ----------
+    let orderItems = cart.map(function(item){
+        return { name: item.name, price: item.price, qty: item.qty, subtotal: item.price * item.qty };
+    });
+
+    db.collection("orders").add({
+        items: orderItems,
+        foodTotal: total,
+        deliveryCharge: deliveryCharge,
+        grandTotal: grandTotal,
+        payment: payment,
+        customerName: name,
+        customerPhone: phone,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(function(err){
+        console.log("Order save failed (sales tracking):", err);
+    });
 
     let url = "https://wa.me/923483111205?text=" + encodeURIComponent(message);
     window.location.href = url;
