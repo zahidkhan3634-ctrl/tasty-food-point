@@ -12,7 +12,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="firebase-config.js"></script>
 </head>
 
@@ -42,14 +41,32 @@
   <!-- ADMIN PANEL (hidden until logged in) -->
   <div id="adminPanel" style="display:none;">
 
+    <h2 class="text-warning mb-4">📊 Sales Report</h2>
+
+    <div class="card p-4 bg-dark text-white mb-5">
+        <div class="d-flex gap-2 mb-4 flex-wrap">
+            <button class="btn btn-outline-warning btn-sm" onclick="loadReport('today')" id="btnToday">Today</button>
+            <button class="btn btn-outline-warning btn-sm" onclick="loadReport('week')" id="btnWeek">This Week</button>
+            <button class="btn btn-outline-warning btn-sm" onclick="loadReport('month')" id="btnMonth">This Month</button>
+        </div>
+
+        <div id="reportSummary" class="mb-4">
+            <p class="text-white-50">Loading report...</p>
+        </div>
+
+        <h5 class="text-warning">Top Selling Items</h5>
+        <div id="reportItems"><p class="text-white-50">Loading...</p></div>
+    </div>
+
     <h2 class="text-warning mb-4">Naya Item Add Karein</h2>
 
     <div class="card p-4 bg-dark text-white mb-5">
         <input type="text" id="newName" class="form-control mb-3" placeholder="Item Name (e.g. Zinger Burger)">
         <input type="number" id="newPrice" class="form-control mb-3" placeholder="Price (e.g. 250)">
-        <label class="text-white-50 mb-1" style="font-size:0.85rem;">Item Photo</label>
-        <input type="file" id="newImageFile" accept="image/*" class="form-control mb-2">
-        <p id="uploadStatus" class="text-warning" style="font-size:0.8rem;"></p>
+        <input type="text" id="newImage" class="form-control mb-3" placeholder="Image URL (https://...)">
+        <p class="text-white-50 mb-2" style="font-size:0.78rem;">
+            Photo ka link imgbb.com se ban sakta hai (photo upload karein aur "Direct link" copy kar ke yahan paste karein).
+        </p>
         <button class="btn btn-success w-100" onclick="addItem()">➕ Add Item</button>
     </div>
 
