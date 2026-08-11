@@ -5,6 +5,7 @@ firebase.auth().onAuthStateChanged(function(user){
         document.getElementById("adminPanel").style.display = "block";
         document.getElementById("logoutBtn").style.display = "inline-block";
         loadItems();
+        loadReport('today');
     } else {
         document.getElementById("loginBox").style.display = "block";
         document.getElementById("adminPanel").style.display = "none";
@@ -65,7 +66,7 @@ function loadItems(){
                 <div class="card p-3 mb-3 bg-dark text-white">
                     <div class="row align-items-center">
                         <div class="col-3 col-md-2">
-                            <img src="${item.image}" style="width:100%; border-radius:8px;">
+                            <img src="${item.image}" style="width:100%; border-radius:8px;" onerror="this.onerror=null;this.src='https://placehold.co/400x300/3a0d0d/FFC94A?text=No+Image';">
                         </div>
                         <div class="col-9 col-md-4">
                             <strong>${item.name}</strong><br>
@@ -95,36 +96,22 @@ function loadItems(){
 function addItem(){
     let name = document.getElementById("newName").value.trim();
     let price = parseFloat(document.getElementById("newPrice").value);
-    let fileInput = document.getElementById("newImageFile");
-    let file = fileInput.files[0];
-    let statusEl = document.getElementById("uploadStatus");
+    let image = document.getElementById("newImage").value.trim();
 
-    if(!name || !price || !file){
-        alert("Please fill all fields aur ek photo select karein.");
+    if(!name || !price || !image){
+        alert("Please fill all fields.");
         return;
     }
 
-    statusEl.innerHTML = "⏳ Photo upload ho rahi hai...";
-
-    let storageRef = firebase.storage().ref("menu-images/" + Date.now() + "_" + file.name);
-
-    storageRef.put(file).then(function(snapshot){
-        return snapshot.ref.getDownloadURL();
-    }).then(function(downloadURL){
-        return db.collection("menuItems").add({
-            name: name,
-            price: price,
-            image: downloadURL,
-            inStock: true
-        });
+    db.collection("menuItems").add({
+        name: name,
+        price: price,
+        image: image,
+        inStock: true
     }).then(function(){
         document.getElementById("newName").value = "";
         document.getElementById("newPrice").value = "";
-        fileInput.value = "";
-        statusEl.innerHTML = "✅ Item add ho gaya!";
-        setTimeout(function(){ statusEl.innerHTML = ""; }, 3000);
-    }).catch(function(err){
-        statusEl.innerHTML = "❌ Error: " + err.message;
+        document.getElementById("newImage").value = "";
     });
 }
 
@@ -141,37 +128,14 @@ function editItem(id, currentName, currentPrice, currentImage){
     let newPrice = prompt("Price:", currentPrice);
     if(newPrice === null) return;
 
-    let changePhoto = confirm("Kya photo bhi change karni hai?\n(OK = Nayi photo select karein, Cancel = Purani photo rakhein)");
+    let newImage = prompt("Image URL:", currentImage);
+    if(newImage === null) return;
 
-    if(!changePhoto){
-        db.collection("menuItems").doc(id).update({
-            name: newName.trim(),
-            price: parseFloat(newPrice)
-        });
-        return;
-    }
-
-    let tempInput = document.createElement("input");
-    tempInput.type = "file";
-    tempInput.accept = "image/*";
-    tempInput.onchange = function(){
-        let file = tempInput.files[0];
-        if(!file) return;
-
-        let storageRef = firebase.storage().ref("menu-images/" + Date.now() + "_" + file.name);
-        storageRef.put(file).then(function(snapshot){
-            return snapshot.ref.getDownloadURL();
-        }).then(function(downloadURL){
-            db.collection("menuItems").doc(id).update({
-                name: newName.trim(),
-                price: parseFloat(newPrice),
-                image: downloadURL
-            });
-        }).catch(function(err){
-            alert("Photo upload error: " + err.message);
-        });
-    };
-    tempInput.click();
+    db.collection("menuItems").doc(id).update({
+        name: newName.trim(),
+        price: parseFloat(newPrice),
+        image: newImage.trim()
+    });
 }
 
 // ---------- DELETE ----------
@@ -180,3 +144,90 @@ function deleteItem(id){
         db.collection("menuItems").doc(id).delete();
     }
 }
+
+// ---------- SALES REPORT ----------
+function loadReport(range){
+    // highlight active button
+    ["today","week","month"].forEach(function(r){
+        let btn = document.getElementById("btn" + r.charAt(0).toUpperCase() + r.slice(1));
+        if(btn) btn.classList.remove("btn-warning");
+        if(btn) btn.classList.add("btn-outline-warning");
+    });
+    let activeBtn = document.getElementById("btn" + range.charAt(0).toUpperCase() + range.slice(1));
+    if(activeBtn){
+        activeBtn.classList.remove("btn-outline-warning");
+        activeBtn.classList.add("btn-warning");
+    }
+
+    let now = new Date();
+    let startDate;
+
+    if(range === "today"){
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if(range === "week"){
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+    } else {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    document.getElementById("reportSummary").innerHTML = "<p class='text-white-50'>Loading report...</p>";
+    document.getElementById("reportItems").innerHTML = "<p class='text-white-50'>Loading...</p>";
+
+    db.collection("orders")
+      .where("createdAt", ">=", startDate)
+      .get()
+      .then(function(snapshot){
+
+        let totalSales = 0;
+        let orderCount = 0;
+        let itemStats = {};
+
+        snapshot.forEach(function(doc){
+            let order = doc.data();
+            orderCount++;
+            totalSales += order.grandTotal || 0;
+
+            (order.items || []).forEach(function(it){
+                if(!itemStats[it.name]){
+                    itemStats[it.name] = { qty: 0, revenue: 0 };
+                }
+                itemStats[it.name].qty += it.qty;
+                itemStats[it.name].revenue += it.subtotal;
+            });
+        });
+
+        document.getElementById("reportSummary").innerHTML = `
+            <div class="row text-center">
+                <div class="col-6">
+                    <h3 class="text-warning mb-0">Rs.${totalSales}</h3>
+                    <small class="text-white-50">Total Sales</small>
+                </div>
+                <div class="col-6">
+                    <h3 class="text-warning mb-0">${orderCount}</h3>
+                    <small class="text-white-50">Orders</small>
+                </div>
+            </div>
+        `;
+
+        let sortedItems = Object.keys(itemStats).map(function(name){
+            return { name: name, qty: itemStats[name].qty, revenue: itemStats[name].revenue };
+        }).sort(function(a, b){ return b.qty - a.qty; });
+
+        if(sortedItems.length === 0){
+            document.getElementById("reportItems").innerHTML = "<p class='text-white-50'>Is period mein koi order nahi hua.</p>";
+            return;
+        }
+
+        let itemsHtml = "<table class='table table-dark table-sm mb-0'><thead><tr><th>Item</th><th class='text-end'>Qty Sold</th><th class='text-end'>Revenue</th></tr></thead><tbody>";
+        sortedItems.forEach(function(item){
+            itemsHtml += `<tr><td>${item.name}</td><td class='text-end'>${item.qty}</td><td class='text-end'>Rs.${item.revenue}</td></tr>`;
+        });
+        itemsHtml += "</tbody></table>";
+
+        document.getElementById("reportItems").innerHTML = itemsHtml;
+
+    }).catch(function(err){
+        document.getElementById("reportSummary").innerHTML = "<p class='text-danger'>Report load nahi ho saka: " + err.message + "</p>";
+        document.getElementById("reportItems").innerHTML = "";
+    });
+       }
