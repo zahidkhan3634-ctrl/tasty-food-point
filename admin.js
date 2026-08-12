@@ -70,7 +70,8 @@ function loadItems(){
                         </div>
                         <div class="col-9 col-md-4">
                             <strong>${item.name}</strong><br>
-                            Rs.${item.price}
+                            Rs.${item.price}<br>
+                            <span class="badge bg-secondary mt-1">${item.category || 'Other'}</span>
                         </div>
                         <div class="col-6 col-md-3 mt-2 mt-md-0">
                             <div class="form-check form-switch">
@@ -80,7 +81,7 @@ function loadItems(){
                             </div>
                         </div>
                         <div class="col-6 col-md-3 mt-2 mt-md-0 text-end">
-                            <button class="btn btn-sm btn-outline-warning me-1" onclick="editItem('${id}','${item.name.replace(/'/g,"\\'")}',${item.price},'${item.image}')">Edit</button>
+                            <button class="btn btn-sm btn-outline-warning me-1" onclick="editItem('${id}','${item.name.replace(/'/g,"\\'")}',${item.price},'${item.image}','${(item.category||'Other').replace(/'/g,"\\'")}')">Edit</button>
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${id}')">Delete</button>
                         </div>
                     </div>
@@ -96,6 +97,7 @@ function loadItems(){
 function addItem(){
     let name = document.getElementById("newName").value.trim();
     let price = parseFloat(document.getElementById("newPrice").value);
+    let category = document.getElementById("newCategory").value;
     let image = document.getElementById("newImage").value.trim();
 
     if(!name || !price || !image){
@@ -106,6 +108,7 @@ function addItem(){
     db.collection("menuItems").add({
         name: name,
         price: price,
+        category: category,
         image: image,
         inStock: true
     }).then(function(){
@@ -121,12 +124,15 @@ function toggleStock(id, isChecked){
 }
 
 // ---------- EDIT ----------
-function editItem(id, currentName, currentPrice, currentImage){
+function editItem(id, currentName, currentPrice, currentImage, currentCategory){
     let newName = prompt("Item Name:", currentName);
     if(newName === null) return;
 
     let newPrice = prompt("Price:", currentPrice);
     if(newPrice === null) return;
+
+    let newCategory = prompt("Category (Deals / Burgers / Wings / Chicken Snacks / Fries / Cold Drinks / Snacks / Other):", currentCategory || "Other");
+    if(newCategory === null) return;
 
     let newImage = prompt("Image URL:", currentImage);
     if(newImage === null) return;
@@ -134,6 +140,7 @@ function editItem(id, currentName, currentPrice, currentImage){
     db.collection("menuItems").doc(id).update({
         name: newName.trim(),
         price: parseFloat(newPrice),
+        category: newCategory.trim(),
         image: newImage.trim()
     });
 }
@@ -230,4 +237,4 @@ function loadReport(range){
         document.getElementById("reportSummary").innerHTML = "<p class='text-danger'>Report load nahi ho saka: " + err.message + "</p>";
         document.getElementById("reportItems").innerHTML = "";
     });
-       }
+}
