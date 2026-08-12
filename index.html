@@ -79,8 +79,22 @@ See Menu
 🎉 Order above Rs.800 &amp; get FREE Delivery
 </div>
 
-<div class="row" id="menuContainer">
-<!-- Items yahan Firebase se automatically load hongi -->
+<div class="menu-search-wrap">
+    <input type="text" id="menuSearchInput" class="menu-search-input" placeholder="🔍 Item ka naam search karein..." oninput="handleMenuSearch()">
+</div>
+
+<div class="category-tabs" id="categoryTabs">
+<!-- Category buttons yahan JS se load honge -->
+</div>
+
+<div id="searchResultsSection" style="display:none;">
+    <h4 class="category-heading">Search Results</h4>
+    <div class="row" id="searchResultsContainer"></div>
+    <hr class="menu-divider">
+</div>
+
+<div id="menuContainer">
+<!-- Items yahan Firebase se automatically load hongi, category-wise -->
 <p class="text-center text-white">Loading menu...</p>
 </div>
 
