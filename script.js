@@ -78,49 +78,136 @@ function loadMenu(){
     });
 }
 
+// Fixed category order (items without a category go under "Other")
+const CATEGORY_ORDER = ["Deals", "Burgers", "Wings", "Chicken Snacks", "Fries", "Cold Drinks", "Snacks", "Other"];
+
+function getCategory(item){
+    return item.category && item.category.trim() !== "" ? item.category : "Other";
+}
+
 function renderMenu(){
     let container = document.getElementById("menuContainer");
+    let tabsContainer = document.getElementById("categoryTabs");
 
     if(menuItemsCache.length === 0){
         container.innerHTML = `<p class="text-center text-white">Abhi koi item nahi hai.</p>`;
+        tabsContainer.innerHTML = "";
+        return;
+    }
+
+    // Group items by category
+    let groups = {};
+    menuItemsCache.forEach(function(item){
+        let cat = getCategory(item);
+        if(!groups[cat]) groups[cat] = [];
+        groups[cat].push(item);
+    });
+
+    // Sort categories: fixed order first, then any extra custom categories alphabetically
+    let categoriesPresent = Object.keys(groups);
+    categoriesPresent.sort(function(a, b){
+        let ia = CATEGORY_ORDER.indexOf(a);
+        let ib = CATEGORY_ORDER.indexOf(b);
+        if(ia === -1) ia = 999;
+        if(ib === -1) ib = 999;
+        if(ia !== ib) return ia - ib;
+        return a.localeCompare(b);
+    });
+
+    // Render category tabs
+    let tabsHtml = `<button class="cat-tab" onclick="scrollToCategory('all')">All</button>`;
+    categoriesPresent.forEach(function(cat){
+        let safeId = "cat_" + cat.replace(/[^a-zA-Z0-9]/g, "_");
+        tabsHtml += `<button class="cat-tab" onclick="scrollToCategory('${safeId}')">${cat}</button>`;
+    });
+    tabsContainer.innerHTML = tabsHtml;
+
+    // Render sections
+    let html = "";
+    categoriesPresent.forEach(function(cat){
+        let safeId = "cat_" + cat.replace(/[^a-zA-Z0-9]/g, "_");
+        html += `<div id="${safeId}" class="category-section">`;
+        html += `<h4 class="category-heading">${cat}</h4>`;
+        html += `<div class="row">`;
+        groups[cat].forEach(function(item){
+            html += renderItemCard(item);
+        });
+        html += `</div></div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+function scrollToCategory(id){
+    if(id === "all"){
+        document.getElementById("menu").scrollIntoView({ behavior: "smooth" });
+        return;
+    }
+    let el = document.getElementById(id);
+    if(el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderItemCard(item, idPrefix){
+    idPrefix = idPrefix || "action_";
+    let actionId = idPrefix + item.id;
+    let inStock = item.inStock !== false;
+
+    let actionHTML = "";
+    if(!inStock){
+        actionHTML = `<button class="btn btn-secondary w-100" disabled>Out of Stock</button>`;
+    } else {
+        let cartItem = cart.find(function(c){ return c.id === item.id; });
+        if(cartItem){
+            actionHTML = stepperHTML(item.id, item.name, item.price, actionId, cartItem.qty);
+        } else {
+            actionHTML = addToCartButtonHTML(item.id, item.name, item.price, actionId);
+        }
+    }
+
+    return `
+        <div class="col-md-4 mb-4">
+            <div class="card${!inStock ? ' out-of-stock-card' : ''}">
+                <img src="${item.image}" class="card-img-top" onerror="this.onerror=null;this.src='https://placehold.co/400x300/3a0d0d/FFC94A?text=Tasty+Food+Point';">
+                <div class="card-body text-center">
+                    <h4>${item.name}</h4>
+                    <p>Rs.${item.price}</p>
+                    <div class="item-action" id="${actionId}">
+                        ${actionHTML}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ---------- SEARCH ----------
+function handleMenuSearch(){
+    let query = document.getElementById("menuSearchInput").value.trim().toLowerCase();
+    let resultsSection = document.getElementById("searchResultsSection");
+    let resultsContainer = document.getElementById("searchResultsContainer");
+
+    if(query === ""){
+        resultsSection.style.display = "none";
+        resultsContainer.innerHTML = "";
+        return;
+    }
+
+    let matches = menuItemsCache.filter(function(item){
+        return item.name.toLowerCase().includes(query);
+    });
+
+    resultsSection.style.display = "block";
+
+    if(matches.length === 0){
+        resultsContainer.innerHTML = `<p class="text-white-50">Koi item nahi mila "${query}" ke liye.</p>`;
         return;
     }
 
     let html = "";
-
-    menuItemsCache.forEach(function(item){
-        let actionId = "action_" + item.id;
-        let inStock = item.inStock !== false;
-
-        let actionHTML = "";
-        if(!inStock){
-            actionHTML = `<button class="btn btn-secondary w-100" disabled>Out of Stock</button>`;
-        } else {
-            let cartItem = cart.find(function(c){ return c.id === item.id; });
-            if(cartItem){
-                actionHTML = stepperHTML(item.id, item.name, item.price, actionId, cartItem.qty);
-            } else {
-                actionHTML = addToCartButtonHTML(item.id, item.name, item.price, actionId);
-            }
-        }
-
-        html += `
-            <div class="col-md-4 mb-4">
-                <div class="card${!inStock ? ' out-of-stock-card' : ''}">
-                    <img src="${item.image}" class="card-img-top" onerror="this.onerror=null;this.src='https://placehold.co/400x300/3a0d0d/FFC94A?text=Tasty+Food+Point';">
-                    <div class="card-body text-center">
-                        <h4>${item.name}</h4>
-                        <p>Rs.${item.price}</p>
-                        <div class="item-action" id="${actionId}">
-                            ${actionHTML}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+    matches.forEach(function(item){
+        html += renderItemCard(item, "search_action_");
     });
-
-    container.innerHTML = html;
+    resultsContainer.innerHTML = html;
 }
 
 // ---------- CART LOGIC (id based, so same-name items don't clash) ----------
@@ -137,19 +224,22 @@ function addToCartButtonHTML(id, name, price, actionId){
 }
 
 function syncCardAction(id, actionId){
-    let box = document.getElementById(actionId);
-    if(!box) return;
-
     let menuItem = menuItemsCache.find(function(m){ return m.id === id; });
     if(!menuItem) return;
 
     let cartItem = cart.find(function(c){ return c.id === id; });
 
-    if(cartItem){
-        box.innerHTML = stepperHTML(id, menuItem.name, menuItem.price, actionId, cartItem.qty);
-    } else {
-        box.innerHTML = addToCartButtonHTML(id, menuItem.name, menuItem.price, actionId);
-    }
+    // Update both possible instances of this item's action box (category section + search results)
+    ["action_" + id, "search_action_" + id].forEach(function(possibleId){
+        let box = document.getElementById(possibleId);
+        if(!box) return;
+
+        if(cartItem){
+            box.innerHTML = stepperHTML(id, menuItem.name, menuItem.price, possibleId, cartItem.qty);
+        } else {
+            box.innerHTML = addToCartButtonHTML(id, menuItem.name, menuItem.price, possibleId);
+        }
+    });
 }
 
 function addToCart(id, name, price, actionId){
