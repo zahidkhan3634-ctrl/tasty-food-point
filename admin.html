@@ -41,6 +41,19 @@
   <!-- ADMIN PANEL (hidden until logged in) -->
   <div id="adminPanel" style="display:none;">
 
+    <h2 class="text-warning mb-4">🚚 Delivery Settings</h2>
+
+    <div class="card p-4 bg-dark text-white mb-5">
+        <label class="text-white-50 mb-1" style="font-size:0.85rem;">Delivery Charge (Rs.)</label>
+        <input type="number" id="deliveryChargeInput" class="form-control mb-3" placeholder="e.g. 100">
+
+        <label class="text-white-50 mb-1" style="font-size:0.85rem;">Free Delivery Above (Rs.)</label>
+        <input type="number" id="freeDeliveryInput" class="form-control mb-3" placeholder="e.g. 1000">
+
+        <button class="btn btn-success w-100" onclick="saveDeliverySettings()">💾 Save Settings</button>
+        <p id="deliverySettingsMsg" class="text-white-50 mt-2 mb-0" style="font-size:0.8rem;"></p>
+    </div>
+
     <h2 class="text-warning mb-4">📊 Sales Report</h2>
 
     <div class="card p-4 bg-dark text-white mb-5">
@@ -89,4 +102,4 @@
 
 <script src="admin.js"></script>
 </body>
-</html>
+          </html>
