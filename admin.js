@@ -6,6 +6,7 @@ firebase.auth().onAuthStateChanged(function(user){
         document.getElementById("logoutBtn").style.display = "inline-block";
         loadItems();
         loadReport('today');
+        loadDeliverySettingsAdmin();
     } else {
         document.getElementById("loginBox").style.display = "block";
         document.getElementById("adminPanel").style.display = "none";
@@ -150,6 +151,42 @@ function deleteItem(id){
     if(confirm("Kya aap is item ko permanently delete karna chahte hain?")){
         db.collection("menuItems").doc(id).delete();
     }
+}
+
+// ---------- DELIVERY SETTINGS ----------
+function loadDeliverySettingsAdmin(){
+    db.collection("settings").doc("delivery").get().then(function(doc){
+        let charge = 100;
+        let freeAbove = 1000;
+        if(doc.exists){
+            let data = doc.data();
+            if(typeof data.charge === "number") charge = data.charge;
+            if(typeof data.freeAbove === "number") freeAbove = data.freeAbove;
+        }
+        document.getElementById("deliveryChargeInput").value = charge;
+        document.getElementById("freeDeliveryInput").value = freeAbove;
+    });
+}
+
+function saveDeliverySettings(){
+    let charge = parseFloat(document.getElementById("deliveryChargeInput").value);
+    let freeAbove = parseFloat(document.getElementById("freeDeliveryInput").value);
+    let msgBox = document.getElementById("deliverySettingsMsg");
+
+    if(isNaN(charge) || isNaN(freeAbove) || charge < 0 || freeAbove < 0){
+        msgBox.innerHTML = "⚠️ Sahi numbers likhein.";
+        return;
+    }
+
+    db.collection("settings").doc("delivery").set({
+        charge: charge,
+        freeAbove: freeAbove
+    }).then(function(){
+        msgBox.innerHTML = "✅ Saved! Website par turant apply ho jayega.";
+        setTimeout(function(){ msgBox.innerHTML = ""; }, 3000);
+    }).catch(function(err){
+        msgBox.innerHTML = "❌ Error: " + err.message;
+    });
 }
 
 // ---------- SALES REPORT ----------
