@@ -109,15 +109,18 @@ function renderMenu(){
     let container = document.getElementById("menuContainer");
     let tabsContainer = document.getElementById("categoryTabs");
 
-    if(menuItemsCache.length === 0){
-        container.innerHTML = `<p class="text-center text-white">Abhi koi item nahi hai.</p>`;
+    // Only show in-stock items on the customer site
+    let visibleItems = menuItemsCache.filter(function(item){ return item.inStock !== false; });
+
+    if(visibleItems.length === 0){
+        container.innerHTML = `<p class="text-center text-white">Abhi koi item available nahi hai.</p>`;
         tabsContainer.innerHTML = "";
         return;
     }
 
     // Group items by category
     let groups = {};
-    menuItemsCache.forEach(function(item){
+    visibleItems.forEach(function(item){
         let cat = getCategory(item);
         if(!groups[cat]) groups[cat] = [];
         groups[cat].push(item);
@@ -184,13 +187,23 @@ function renderItemCard(item, idPrefix){
         }
     }
 
+    let priceHTML = "";
+    if(item.normalPrice && item.normalPrice > item.price){
+        priceHTML = `<p><span style="text-decoration:line-through; color:rgba(245,239,230,.5); font-size:0.85em;">Rs.${item.normalPrice}</span> &nbsp; <span style="color:var(--gold); font-weight:700;">Rs.${item.price}</span></p>`;
+    } else {
+        priceHTML = `<p>Rs.${item.price}</p>`;
+    }
+
+    let descHTML = item.description ? `<p style="font-size:0.82em; color:rgba(245,239,230,.7); margin-bottom:8px;">${item.description}</p>` : "";
+
     return `
         <div class="col-md-4 mb-4">
             <div class="card${!inStock ? ' out-of-stock-card' : ''}">
                 <img src="${item.image}" class="card-img-top" onerror="this.onerror=null;this.src='https://placehold.co/400x300/3a0d0d/FFC94A?text=Tasty+Food+Point';">
                 <div class="card-body text-center">
                     <h4>${item.name}</h4>
-                    <p>Rs.${item.price}</p>
+                    ${descHTML}
+                    ${priceHTML}
                     <div class="item-action" id="${actionId}">
                         ${actionHTML}
                     </div>
@@ -213,7 +226,7 @@ function handleMenuSearch(){
     }
 
     let matches = menuItemsCache.filter(function(item){
-        return item.name.toLowerCase().includes(query);
+        return item.inStock !== false && item.name.toLowerCase().includes(query);
     });
 
     resultsSection.style.display = "block";
