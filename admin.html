@@ -73,9 +73,16 @@
 
     <h2 class="text-warning mb-4">Naya Item Add Karein</h2>
 
+    <div class="card p-4 bg-dark text-white mb-3">
+        <p class="mb-2">🔥 Sab 12 Combo Deals ek click mein add karein:</p>
+        <button class="btn btn-warning w-100" onclick="addAllDeals()">🔥 Add All 12 Combo Deals</button>
+    </div>
+
     <div class="card p-4 bg-dark text-white mb-5">
         <input type="text" id="newName" class="form-control mb-3" placeholder="Item Name (e.g. Zinger Burger)">
+        <input type="text" id="newDescription" class="form-control mb-3" placeholder="Description (optional, e.g. for deals)">
         <input type="number" id="newPrice" class="form-control mb-3" placeholder="Price (e.g. 250)">
+        <input type="number" id="newNormalPrice" class="form-control mb-3" placeholder="Normal Price (optional, for deals only)">
         <select id="newCategory" class="form-control mb-3">
             <option value="Deals">Deals</option>
             <option value="Burgers">Burgers</option>
@@ -102,4 +109,4 @@
 
 <script src="admin.js"></script>
 </body>
-          </html>
+              </html>
