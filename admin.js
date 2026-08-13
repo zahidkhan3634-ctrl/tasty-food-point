@@ -71,7 +71,8 @@ function loadItems(){
                         </div>
                         <div class="col-9 col-md-4">
                             <strong>${item.name}</strong><br>
-                            Rs.${item.price}<br>
+                            ${item.normalPrice ? `<span style="text-decoration:line-through; opacity:.6;">Rs.${item.normalPrice}</span> ` : ""}Rs.${item.price}<br>
+                            ${item.description ? `<small class="text-white-50">${item.description}</small><br>` : ""}
                             <span class="badge bg-secondary mt-1">${item.category || 'Other'}</span>
                         </div>
                         <div class="col-6 col-md-3 mt-2 mt-md-0">
@@ -94,10 +95,53 @@ function loadItems(){
     });
 }
 
+// ---------- BULK ADD: COMBO DEALS ----------
+const DEALS_DATA = [
+    { name: "Deal 1 – Snack Combo", price: 130, normalPrice: 140, description: "2 Hot Wings + 1 Chicken Samosa + 1 Gourmet 300ml" },
+    { name: "Deal 2 – Crispy Combo", price: 110, normalPrice: 120, description: "1 Chicken Nuggets + 1 Chicken Qeema Roll + 1 Gourmet 300ml" },
+    { name: "Deal 3 – Tasty Combo", price: 140, normalPrice: 150, description: "2 Hot Wings + 1 Chicken Nuggets + 1 Kaghzi Samosa + 1 Gourmet 300ml" },
+    { name: "Deal 4 – Fries Combo", price: 165, normalPrice: 180, description: "1 Large Fries + 2 Hot Wings + 1 Gourmet 300ml" },
+    { name: "Deal 5 – Chicken Lover", price: 210, normalPrice: 230, description: "Full Chicken Wings + Chicken Nuggets + 1 Gourmet 300ml" },
+    { name: "Deal 6 – Roll & Wings", price: 145, normalPrice: 160, description: "Chicken Qeema Roll + 2 Hot Wings + 1 Chicken Samosa + 1 Gourmet 300ml" },
+    { name: "Deal 7 – Family Deal", price: 390, normalPrice: 430, description: "Full Chicken Wings + Chicken Nuggets + Chicken Qeema Roll + Large Fries + 1 x 1L Coca-Cola/Sprite" },
+    { name: "Deal 8 – Tasty Family Feast", price: 460, normalPrice: 510, description: "Full Chicken Wings + Chicken Nuggets + 2 Chicken Qeema Rolls + 1 Chicken Samosa + Large Fries + 1 x 1.5L Coca-Cola/Sprite" },
+    { name: "Deal 9 – Full Tasty Combo", price: 490, normalPrice: 540, description: "Full Chicken Wings + Chicken Nuggets + 2 Qeema Rolls + 2 Chicken Samosa + Large Fries + 1 x 1.5L Coca-Cola/Sprite + 1 x Water 1.5L" },
+    { name: "Deal 10 – Rs.100 Deal", price: 100, normalPrice: 110, description: "1 Hot Wings + 1 Chicken Samosa + 1 Kaghzi Samosa + 1 Gourmet 300ml" },
+    { name: "Deal 11 – Rs.150 Deal", price: 150, normalPrice: 160, description: "Chicken Nuggets + Chicken Qeema Roll + Chicken Samosa + Gourmet 300ml" },
+    { name: "Deal 12 – Rs.200 Deal", price: 200, normalPrice: 230, description: "Large Fries + 2 Hot Wings + Chicken Nuggets + Gourmet 300ml" }
+];
+
+function addAllDeals(){
+    if(!confirm("Ye 12 combo deals menu mein 'Deals' category ke andar add kar dega. Continue?")) return;
+
+    let batch = db.batch();
+    DEALS_DATA.forEach(function(deal){
+        let ref = db.collection("menuItems").doc();
+        batch.set(ref, {
+            name: deal.name,
+            price: deal.price,
+            normalPrice: deal.normalPrice,
+            description: deal.description,
+            category: "Deals",
+            image: "https://placehold.co/400x300/3a0d0d/FFC94A?text=" + encodeURIComponent(deal.name.split("–")[0].trim()),
+            inStock: true
+        });
+    });
+
+    batch.commit().then(function(){
+        alert("✅ 12 Deals add ho gaye! Aap chahen to har deal ki Edit se apni khud ki photo bhi laga sakte hain.");
+    }).catch(function(err){
+        alert("❌ Error: " + err.message);
+    });
+}
+
 // ---------- ADD ----------
 function addItem(){
     let name = document.getElementById("newName").value.trim();
+    let description = document.getElementById("newDescription").value.trim();
     let price = parseFloat(document.getElementById("newPrice").value);
+    let normalPriceRaw = document.getElementById("newNormalPrice").value.trim();
+    let normalPrice = normalPriceRaw === "" ? null : parseFloat(normalPriceRaw);
     let category = document.getElementById("newCategory").value;
     let image = document.getElementById("newImage").value.trim();
 
@@ -106,15 +150,21 @@ function addItem(){
         return;
     }
 
-    db.collection("menuItems").add({
+    let itemData = {
         name: name,
         price: price,
         category: category,
         image: image,
         inStock: true
-    }).then(function(){
+    };
+    if(description) itemData.description = description;
+    if(normalPrice !== null && !isNaN(normalPrice)) itemData.normalPrice = normalPrice;
+
+    db.collection("menuItems").add(itemData).then(function(){
         document.getElementById("newName").value = "";
+        document.getElementById("newDescription").value = "";
         document.getElementById("newPrice").value = "";
+        document.getElementById("newNormalPrice").value = "";
         document.getElementById("newImage").value = "";
     });
 }
@@ -274,4 +324,4 @@ function loadReport(range){
         document.getElementById("reportSummary").innerHTML = "<p class='text-danger'>Report load nahi ho saka: " + err.message + "</p>";
         document.getElementById("reportItems").innerHTML = "";
     });
-}
+            }
