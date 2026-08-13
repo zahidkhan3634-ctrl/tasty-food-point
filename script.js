@@ -1,6 +1,26 @@
 let cart = [];
 let menuItemsCache = [];
 
+// ---------- DELIVERY SETTINGS (loaded from Firestore, admin can change from admin panel) ----------
+let deliverySettings = { charge: 100, freeAbove: 1000 }; // defaults until Firestore loads
+
+function loadDeliverySettings(){
+    db.collection("settings").doc("delivery").get().then(function(doc){
+        if(doc.exists){
+            let data = doc.data();
+            if(typeof data.charge === "number") deliverySettings.charge = data.charge;
+            if(typeof data.freeAbove === "number") deliverySettings.freeAbove = data.freeAbove;
+        }
+        let ribbon = document.getElementById("deliveryRibbon");
+        if(ribbon){
+            ribbon.innerHTML = "🎉 Order above Rs." + deliverySettings.freeAbove + " &amp; get FREE Delivery";
+        }
+        renderCart(); // re-render with correct values once settings are loaded
+    }).catch(function(err){
+        console.log("Delivery settings load failed, using defaults:", err);
+    });
+}
+
 // ---------- PAYMENT ACCOUNT DETAILS ----------
 const paymentAccounts = {
     "JazzCash": { name: "Zahid Khan", number: "03116563925" },
@@ -338,17 +358,17 @@ function renderCart(){
     let total = calculateTotal();
     document.getElementById("totalPrice").innerHTML = total;
 
-    let deliveryCharge = (total >= 800) ? 0 : 50;
+    let deliveryCharge = (total >= deliverySettings.freeAbove) ? 0 : deliverySettings.charge;
     let grandTotal = total === 0 ? 0 : total + deliveryCharge;
     document.getElementById("grandTotal").innerHTML = grandTotal;
 
     let noticeBox = document.getElementById("deliveryNotice");
     if(noticeBox){
-        if(total >= 800){
+        if(total >= deliverySettings.freeAbove){
             noticeBox.innerHTML = "🎉 Free Delivery Unlocked!";
         } else {
-            let remaining = 800 - total;
-            noticeBox.innerHTML = "🚚 Delivery: Rs.50 &nbsp;|&nbsp; Add Rs." + remaining + " more to get FREE delivery (orders above Rs.800)";
+            let remaining = deliverySettings.freeAbove - total;
+            noticeBox.innerHTML = "🚚 Delivery: Rs." + deliverySettings.charge + " &nbsp;|&nbsp; Add Rs." + remaining + " more to get FREE delivery (orders above Rs." + deliverySettings.freeAbove + ")";
         }
     }
 }
@@ -371,9 +391,9 @@ function placeOrder(){
     });
 
     let total = calculateTotal();
-    let deliveryCharge = (total >= 800) ? 0 : 50;
+    let deliveryCharge = (total >= deliverySettings.freeAbove) ? 0 : deliverySettings.charge;
     let grandTotal = total + deliveryCharge;
-    let deliveryText = deliveryCharge === 0 ? "FREE 🎉" : "Rs.50";
+    let deliveryText = deliveryCharge === 0 ? "FREE 🎉" : "Rs." + deliverySettings.charge;
 
     let paymentLine = "💳 Payment: " + payment;
     if(paymentAccounts[payment]){
@@ -419,5 +439,6 @@ ${paymentLine}`;
     window.location.href = url;
 }
 
-// page load hote hi menu fetch karo
+// page load hote hi menu aur delivery settings fetch karo
 loadMenu();
+loadDeliverySettings();
