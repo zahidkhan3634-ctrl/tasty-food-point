@@ -4,6 +4,22 @@ let menuItemsCache = [];
 // ---------- DELIVERY SETTINGS (loaded from Firestore, admin can change from admin panel) ----------
 let deliverySettings = { charge: 100, freeAbove: 1000 }; // defaults until Firestore loads
 
+// ---------- RESTAURANT OPEN/CLOSE STATUS ----------
+function checkRestaurantStatus(){
+    db.collection("settings").doc("restaurant").get().then(function(doc){
+        let isOpen = true; // default open if not set
+        if(doc.exists && typeof doc.data().isOpen === "boolean"){
+            isOpen = doc.data().isOpen;
+        }
+        let overlay = document.getElementById("closedOverlay");
+        if(overlay){
+            overlay.style.display = isOpen ? "none" : "flex";
+        }
+    }).catch(function(err){
+        console.log("Restaurant status check failed:", err);
+    });
+}
+
 function loadDeliverySettings(){
     db.collection("settings").doc("delivery").get().then(function(doc){
         if(doc.exists){
@@ -455,3 +471,4 @@ ${paymentLine}`;
 // page load hote hi menu aur delivery settings fetch karo
 loadMenu();
 loadDeliverySettings();
+checkRestaurantStatus();
