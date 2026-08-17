@@ -41,6 +41,18 @@
   <!-- ADMIN PANEL (hidden until logged in) -->
   <div id="adminPanel" style="display:none;">
 
+    <h2 class="text-warning mb-4">🏪 Restaurant Status</h2>
+
+    <div class="card p-4 bg-dark text-white mb-5 text-center">
+        <p class="mb-3" id="restaurantStatusLabel" style="font-size:1.1rem; font-weight:600;">Loading...</p>
+        <div class="form-check form-switch d-flex justify-content-center align-items-center">
+            <input class="form-check-input" type="checkbox" role="switch" id="restaurantToggle" style="width:3.5em; height:1.8em;" onchange="toggleRestaurantStatus()">
+        </div>
+        <p class="text-white-50 mt-3 mb-0" style="font-size:0.8rem;">
+            OFF karne par customer aapki website par order nahi kar sakenge — unhe "Hum abhi band hain" message dikhega.
+        </p>
+    </div>
+
     <h2 class="text-warning mb-4">🚚 Delivery Settings</h2>
 
     <div class="card p-4 bg-dark text-white mb-5">
@@ -73,11 +85,6 @@
 
     <h2 class="text-warning mb-4">Naya Item Add Karein</h2>
 
-    <div class="card p-4 bg-dark text-white mb-3">
-        <p class="mb-2">🔥 Sab 12 Combo Deals ek click mein add karein:</p>
-        <button class="btn btn-warning w-100" onclick="addAllDeals()">🔥 Add All 12 Combo Deals</button>
-    </div>
-
     <div class="card p-4 bg-dark text-white mb-5">
         <input type="text" id="newName" class="form-control mb-3" placeholder="Item Name (e.g. Zinger Burger)">
         <input type="text" id="newDescription" class="form-control mb-3" placeholder="Description (optional, e.g. for deals)">
@@ -109,4 +116,4 @@
 
 <script src="admin.js"></script>
 </body>
-              </html>
+</html>
