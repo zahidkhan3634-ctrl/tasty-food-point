@@ -317,4 +317,4 @@ function loadReport(range){
         document.getElementById("reportSummary").innerHTML = "<p class='text-danger'>Report load nahi ho saka: " + err.message + "</p>";
         document.getElementById("reportItems").innerHTML = "";
     });
-                                     }
+}
