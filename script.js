@@ -4,6 +4,36 @@ let menuItemsCache = [];
 // ---------- DELIVERY SETTINGS (loaded from Firestore, admin can change from admin panel) ----------
 let deliverySettings = { charge: 100, freeAbove: 1000 }; // defaults until Firestore loads
 
+// ---------- ORDER TIMING ----------
+function formatTime12hr(timeStr){
+    if(!timeStr) return "";
+    let parts = timeStr.split(":");
+    let h = parseInt(parts[0]);
+    let m = parts[1];
+    let ampm = h >= 12 ? "PM" : "AM";
+    let h12 = h % 12;
+    if(h12 === 0) h12 = 12;
+    return h12 + ":" + m + " " + ampm;
+}
+
+function loadTimingSettings(){
+    db.collection("settings").doc("timing").get().then(function(doc){
+        let openTime = "12:00";
+        let closeTime = "20:00";
+        if(doc.exists){
+            let data = doc.data();
+            if(data.openTime) openTime = data.openTime;
+            if(data.closeTime) closeTime = data.closeTime;
+        }
+        let display = document.getElementById("timingDisplay");
+        if(display){
+            display.innerHTML = "⏰ Delivery Hours: " + formatTime12hr(openTime) + " – " + formatTime12hr(closeTime) + " Daily";
+        }
+    }).catch(function(err){
+        console.log("Timing settings load failed:", err);
+    });
+}
+
 // ---------- RESTAURANT OPEN/CLOSE STATUS ----------
 function checkRestaurantStatus(){
     db.collection("settings").doc("restaurant").get().then(function(doc){
@@ -402,6 +432,41 @@ function renderCart(){
     }
 }
 
+// ---------- GPS LOCATION ----------
+let customerLocationLink = "";
+
+function getCustomerLocation(){
+    let statusEl = document.getElementById("locationStatus");
+    let btn = document.getElementById("locationBtn");
+
+    if(!navigator.geolocation){
+        statusEl.style.display = "block";
+        statusEl.style.color = "#ff8080";
+        statusEl.innerHTML = "⚠️ Ye browser location support nahi karta.";
+        return;
+    }
+
+    statusEl.style.display = "block";
+    statusEl.style.color = "#FFC94A";
+    statusEl.innerHTML = "📍 Location fetch ho rahi hai...";
+    btn.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(function(position){
+        let lat = position.coords.latitude;
+        let lng = position.coords.longitude;
+        customerLocationLink = "https://maps.google.com/?q=" + lat + "," + lng;
+
+        statusEl.style.color = "#5fd35f";
+        statusEl.innerHTML = "✅ Location add ho gayi!";
+        btn.innerHTML = "📍 Location Add Ho Gayi ✅";
+        btn.disabled = false;
+    }, function(error){
+        statusEl.style.color = "#ff8080";
+        statusEl.innerHTML = "⚠️ Location nahi mil saki. Permission allow karein ya address type karein.";
+        btn.disabled = false;
+    });
+}
+
 function placeOrder(){
     if(cart.length === 0){
         alert("Please add at least one item.");
@@ -430,13 +495,15 @@ function placeOrder(){
         paymentLine += `\n➡️ Send Rs.${grandTotal} to ${acc.name} (${acc.number}) via ${payment}\n📸 Payment karne ke baad screenshot yahin WhatsApp par bhej dein.`;
     }
 
+    let locationLine = customerLocationLink ? `📍 GPS Location: ${customerLocationLink}\n` : "";
+
     let message =
 `🍔 Tasty Food Point
 
 👤 Name: ${name}
 📞 Phone: ${phone}
 📍 Address: ${address}
-
+${locationLine}
 🛒 Order:
 ${order}
 
@@ -459,6 +526,7 @@ ${paymentLine}`;
         payment: payment,
         customerName: name,
         customerPhone: phone,
+        locationLink: customerLocationLink || null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }).catch(function(err){
         console.log("Order save failed (sales tracking):", err);
@@ -472,3 +540,4 @@ ${paymentLine}`;
 loadMenu();
 loadDeliverySettings();
 checkRestaurantStatus();
+loadTimingSettings();
