@@ -53,6 +53,19 @@
         </p>
     </div>
 
+    <h2 class="text-warning mb-4">⏰ Order Timing</h2>
+
+    <div class="card p-4 bg-dark text-white mb-5">
+        <label class="text-white-50 mb-1" style="font-size:0.85rem;">Opening Time</label>
+        <input type="time" id="openTimeInput" class="form-control mb-3">
+
+        <label class="text-white-50 mb-1" style="font-size:0.85rem;">Closing Time</label>
+        <input type="time" id="closeTimeInput" class="form-control mb-3">
+
+        <button class="btn btn-success w-100" onclick="saveTimingSettings()">💾 Save Timing</button>
+        <p id="timingSettingsMsg" class="text-white-50 mt-2 mb-0" style="font-size:0.8rem;"></p>
+    </div>
+
     <h2 class="text-warning mb-4">🚚 Delivery Settings</h2>
 
     <div class="card p-4 bg-dark text-white mb-5">
