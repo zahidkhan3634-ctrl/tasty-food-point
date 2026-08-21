@@ -82,6 +82,8 @@ See Menu
 <h2>Handpicked Favourites</h2>
 </div>
 
+<p id="timingDisplay" style="text-align:center; color:#FFC94A; font-weight:600; margin-bottom:14px; font-size:14px;"></p>
+
 <div class="delivery-ribbon" id="deliveryRibbon">
 🎉 Order above Rs.1000 &amp; get FREE Delivery
 </div>
@@ -140,7 +142,12 @@ See Menu
 
 <input type="tel" id="customerPhone" class="form-control mb-3" placeholder="Phone Number">
 
-<textarea id="customerAddress" class="form-control mb-3" rows="3" placeholder="Complete Address"></textarea>
+<textarea id="customerAddress" class="form-control mb-2" rows="3" placeholder="Complete Address"></textarea>
+
+<button type="button" class="btn btn-outline-warning w-100 mb-3" onclick="getCustomerLocation()" id="locationBtn">
+📍 Meri Location Add Karein (Optional)
+</button>
+<p id="locationStatus" style="font-size:12px; color:#FFC94A; margin-top:-8px; margin-bottom:14px; display:none;"></p>
 
 <select id="paymentMethod" class="form-select mb-3" onchange="showPaymentDetails()">
 <option>Cash on Delivery</option>
