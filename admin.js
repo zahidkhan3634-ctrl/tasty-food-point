@@ -8,6 +8,7 @@ firebase.auth().onAuthStateChanged(function(user){
         loadReport('today');
         loadDeliverySettingsAdmin();
         loadRestaurantStatusAdmin();
+        loadTimingSettingsAdmin();
     } else {
         document.getElementById("loginBox").style.display = "block";
         document.getElementById("adminPanel").style.display = "none";
@@ -164,6 +165,44 @@ function deleteItem(id){
     }
 }
 
+// ---------- ORDER TIMING ----------
+function loadTimingSettingsAdmin(){
+    db.collection("settings").doc("timing").get().then(function(doc){
+        let openTime = "12:00";
+        let closeTime = "20:00";
+        if(doc.exists){
+            let data = doc.data();
+            if(data.openTime) openTime = data.openTime;
+            if(data.closeTime) closeTime = data.closeTime;
+        }
+        document.getElementById("openTimeInput").value = openTime;
+        document.getElementById("closeTimeInput").value = closeTime;
+    }).catch(function(err){
+        document.getElementById("timingSettingsMsg").innerHTML = "⚠️ Load error: " + err.message;
+    });
+}
+
+function saveTimingSettings(){
+    let openTime = document.getElementById("openTimeInput").value;
+    let closeTime = document.getElementById("closeTimeInput").value;
+    let msgBox = document.getElementById("timingSettingsMsg");
+
+    if(!openTime || !closeTime){
+        msgBox.innerHTML = "⚠️ Dono timings select karein.";
+        return;
+    }
+
+    db.collection("settings").doc("timing").set({
+        openTime: openTime,
+        closeTime: closeTime
+    }).then(function(){
+        msgBox.innerHTML = "✅ Saved! Website par turant apply ho jayega.";
+        setTimeout(function(){ msgBox.innerHTML = ""; }, 3000);
+    }).catch(function(err){
+        msgBox.innerHTML = "❌ Error: " + err.message;
+    });
+}
+
 // ---------- RESTAURANT OPEN/CLOSE STATUS ----------
 function loadRestaurantStatusAdmin(){
     db.collection("settings").doc("restaurant").get().then(function(doc){
@@ -173,6 +212,8 @@ function loadRestaurantStatusAdmin(){
         }
         document.getElementById("restaurantToggle").checked = isOpen;
         updateRestaurantStatusLabel(isOpen);
+    }).catch(function(err){
+        document.getElementById("restaurantStatusLabel").innerHTML = "⚠️ Load error: " + err.message;
     });
 }
 
@@ -208,6 +249,8 @@ function loadDeliverySettingsAdmin(){
         }
         document.getElementById("deliveryChargeInput").value = charge;
         document.getElementById("freeDeliveryInput").value = freeAbove;
+    }).catch(function(err){
+        document.getElementById("deliverySettingsMsg").innerHTML = "⚠️ Load error: " + err.message;
     });
 }
 
@@ -317,4 +360,4 @@ function loadReport(range){
         document.getElementById("reportSummary").innerHTML = "<p class='text-danger'>Report load nahi ho saka: " + err.message + "</p>";
         document.getElementById("reportItems").innerHTML = "";
     });
-}
+                }
